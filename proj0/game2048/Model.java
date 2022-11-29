@@ -106,20 +106,75 @@ public class Model extends Observable {
      *    value, then the leading two tiles in the direction of motion merge,
      *    and the trailing tile does not.
      * */
+
     public boolean tilt(Side side) {
         boolean changed;
         changed = false;
 
         // TODO: Modify this.board (and perhaps this.score) to account
+        board.setViewingPerspective(side);
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
-
+        if (atLeastOneMoveExists(board)) {
+            changed = isChanged(side);
+        }
+        board.setViewingPerspective(Side.NORTH);
         checkGameOver();
         if (changed) {
             setChanged();
         }
         return changed;
     }
+
+    /**
+     * add one column to a list then check it can merge or push
+     */
+    public boolean isChanged(Side side) {
+        boolean mergedOrMoved = false;
+        for (int c = 0; c < board.size(); c++) {
+            int topRow = board.size() - 1;
+            Tile tiles[] = new Tile[board.size()];
+            int index = 0;
+            for (int r = topRow; r >= 0; r--) {
+                tiles[index] = board.tile(c, r);
+                index++;
+            }
+            if(isMergedOrMove(tiles, c)) {
+                mergedOrMoved = true;
+            }
+        }
+        return mergedOrMoved;
+    }
+
+    public boolean isMergedOrMove(Tile[] tiles, int col) {
+        boolean moved = false;
+        boolean merged = false;
+        int row = board.size() - 1;
+        for (int i = 0; i < tiles.length; i ++) {
+            boolean mergedHappened = false;
+            for (int j = i; j < tiles.length; j ++) {
+                if (tiles[i] == null & tiles[j] != null) {
+                    board.move(col, row - i, tiles[j]);
+                    tiles[i] = tiles[j];
+                    tiles[j] = null;
+                    moved = true;
+                }else if (tiles[i] != null && tiles[j] != null) {
+                    if (tiles[i].value() == tiles[j].value() & !mergedHappened) {
+                        merged = board.move(col, row - i, tiles[j]);
+                        mergedHappened = merged;
+                        if (merged) {
+                            tiles[i] = board.tile(col, row - i);
+                            score += tiles[j].value() * 2;
+                            tiles[j] = null;
+                        }
+                    }
+                }
+            }
+        }
+
+        return moved || merged;
+    }
+
 
     /** Checks if the game is over and sets the gameOver variable
      *  appropriately.
@@ -138,6 +193,14 @@ public class Model extends Observable {
      * */
     public static boolean emptySpaceExists(Board b) {
         // TODO: Fill in this function.
+        System.out.print(b.size());
+        for (int i = 0; i < b.size(); i++) {
+            for (int j = 0; j < b.size(); j++) {
+                if (b.tile(i, j) == null) {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
@@ -148,6 +211,16 @@ public class Model extends Observable {
      */
     public static boolean maxTileExists(Board b) {
         // TODO: Fill in this function.
+        for (int i = 0; i < b.size(); i++) {
+            for (int j = 0; j < b.size(); j++) {
+                Tile currentTile = b.tile(i, j);
+                if (currentTile != null) {
+                    if (currentTile.value() == Model.MAX_PIECE) {
+                        return true;
+                    }
+                }
+            }
+        }
         return false;
     }
 
@@ -159,6 +232,30 @@ public class Model extends Observable {
      */
     public static boolean atLeastOneMoveExists(Board b) {
         // TODO: Fill in this function.
+        if (emptySpaceExists(b)) {
+            return true;
+        }else {
+            // loop for adjacent tiles
+            for (int col = 0; col < b.size(); col++) {
+                int currentRow = 1;
+                if (col < 3) {
+                    Tile colTile = b.tile(col, currentRow);
+                    Tile nextColTile = b.tile(col + 1, currentRow);
+                    if (colTile.value() == nextColTile.value()) {
+                        return true;
+                    }
+                }
+
+                for (int row = 0; row < b.size() - 1; row++) {
+                    Tile rowTile = b.tile(col, row);
+                    Tile nextRowTile = b.tile(col, row + 1);
+                    if (rowTile.value() == nextRowTile.value()) {
+                        return true;
+                    }
+                }
+                currentRow++;
+            }
+        }
         return false;
     }
 
