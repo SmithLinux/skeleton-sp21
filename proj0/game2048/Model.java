@@ -152,6 +152,7 @@ public class Model extends Observable {
         int row = board.size() - 1;
         for (int i = 0; i < tiles.length; i ++) {
             boolean mergedHappened = false;
+            boolean gap = false;
             for (int j = i; j < tiles.length; j ++) {
                 if (tiles[i] == null & tiles[j] != null) {
                     board.move(col, row - i, tiles[j]);
@@ -160,15 +161,23 @@ public class Model extends Observable {
                     moved = true;
                 }else if (tiles[i] != null && tiles[j] != null) {
                     if (tiles[i].value() == tiles[j].value() & !mergedHappened) {
-                        merged = board.move(col, row - i, tiles[j]);
-                        mergedHappened = merged;
-                        if (merged) {
-                            tiles[i] = board.tile(col, row - i);
-                            score += tiles[j].value() * 2;
-                            tiles[j] = null;
+                        for (int g = i + 1; g < j; g++) {
+                            if (tiles[g] != null) {
+                                gap = true;
+                            }
+                        }
+                        if (!gap) {
+                            merged = board.move(col, row - i, tiles[j]);
+                            mergedHappened = merged;
+                            if (merged) {
+                                tiles[i] = board.tile(col, row - i);
+                                score += tiles[j].value() * 2;
+                                tiles[j] = null;
+                            }
                         }
                     }
                 }
+                gap = false;
             }
         }
 
