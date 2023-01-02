@@ -35,7 +35,7 @@ public class TimeAList {
         int preDataSize = 0;
 
         for (int i = 0; i < 8; i++) {
-            int dataSize = 1000 * (1 << i);
+            int dataSize = 10000 * (1 << i);
 
             list.addLast(dataSize); // add the size of the data structure.
             opCounts.addLast(dataSize); // add the number of calls to addList().
